@@ -97,6 +97,7 @@ public class Server {
                                         System.out.println(e);
                                     }
                                 }*/
+                                System.out.println(messageFromClient.getMessageType());
                                 for(Connection user: connections)
 						        {
 						            if(!userName.equals(user.getUserName()))

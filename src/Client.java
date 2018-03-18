@@ -145,7 +145,7 @@ public class Client
         FileOutputStream fos;
         try 
         {
-            fos = new FileOutputStream(fileName);
+            fos = new FileOutputStream("fileName.jpg");
             fos.write(image);
             fos.close();
         }
@@ -186,7 +186,9 @@ public class Client
                 {
                     try
                     {
+                        System.out.println("Picture");
                         return new Message(this.clientName,message[1],readImage(message[1]));
+
                     }
                     catch(Exception e)
                     {
@@ -218,6 +220,7 @@ public class Client
     
     byte[] readImage(String ImageName) throws IOException
     {
+        System.out.println("Reading image");
         File imgPath = new File(ImageName);
         BufferedImage bufferedImage = ImageIO.read(imgPath);
 
