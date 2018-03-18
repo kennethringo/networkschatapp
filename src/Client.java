@@ -103,7 +103,8 @@ public class Client
                                 System.out.println(inMessage.getText());
                             }
                             else if(inMessage.getMessageType().equals("imageOnly"))
-                            {
+                            {   
+                                System.out.println("saving Image");
                                 saveImage(inMessage.getImage(),inMessage.getText());
                             }
                             else if(inMessage.getMessageType().equals("imageRequest"))
@@ -145,7 +146,7 @@ public class Client
         FileOutputStream fos;
         try 
         {
-            fos = new FileOutputStream(fileName);
+            fos = new FileOutputStream("random.jpg");
             fos.write(image);
             fos.close();
         }
@@ -218,6 +219,7 @@ public class Client
     
     byte[] readImage(String ImageName) throws IOException
     {
+        System.out.println(ImageName);
         File imgPath = new File(ImageName);
         BufferedImage bufferedImage = ImageIO.read(imgPath);
 
