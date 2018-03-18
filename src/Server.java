@@ -86,10 +86,32 @@ public class Server {
                                 Message messageFromClient=(Message)inFromClient.readObject();
                                 //if(messageFromClient)
                                 //System.out.println("Here");
-                                if(messageFromClient.getUserFrom().equals(userName))
+                                /*if(messageFromClient.getUserFrom().equals(userName))
                                 {
-
-                                }
+                                    try
+                                    {
+                                        outToClient.writeObject(new Message(m));
+                                    }
+                                    catch(Exception e)
+                                    {
+                                        System.out.println(e);
+                                    }
+                                }*/
+                                for(Connection user: connections)
+						        {
+						            if(!userName.equals(user.getUserName()))
+						            {
+						                try
+						                {
+						                    user.getOutputStream().writeObject(new Message(messageFromClient));
+						                }
+						                catch(Exception e)
+						                {
+						                    System.out.println(e);
+						                }
+						                
+						            }
+						        }
                             }
                             
                             
@@ -121,6 +143,26 @@ public class Server {
    
     }
     
+   
+    void send_message(Message m, String userTo)
+    {
+    	for(Connection user: connections)
+        {
+            if(userTo.equals(user.getUserName()))
+            {
+                try
+                {
+                    user.getOutputStream().writeObject(new Message(m));
+                }
+                catch(Exception e)
+                {
+                    System.out.println(e);
+                }
+                
+            }
+        }
+    }
+
     void broadcast_message(String m, String userName)
     {
         for(Connection user: connections)
