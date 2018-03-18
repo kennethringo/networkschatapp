@@ -19,7 +19,10 @@ public class Message implements Serializable{
     {
         this.MessageType="textOnly"; this.text=text;this.userFrom=userFrom;this.userTo=userTo;
     }
-    
+    protected Message(String text)
+    {
+        this.MessageType="textOnly"; this.text=text;this.userFrom=null;
+    }
     
     /**
      * This method creates a image-only message that is directed to a specific user.
@@ -60,6 +63,10 @@ public class Message implements Serializable{
         
     }
 
+    protected void setMessageType(String MessageType)
+    {
+        this.MessageType=MessageType;
+    }
     protected String getText()
     {
 	   return text;

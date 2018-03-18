@@ -2,6 +2,8 @@
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
 public class Connection
@@ -11,11 +13,15 @@ public class Connection
     public ObjectInputStream input;
     public ObjectOutputStream output;
     public boolean hasNotQuit;
+    private Message waiting;
     
-    public Connection(Socket connection)
+    public Connection(Socket connection, ObjectInputStream input,ObjectOutputStream output)
     {
         hasNotQuit = true;
         this.connection=connection;
+        this.input=input;
+        this.output=output;
+        
     }
     public void setUserName(String userName)
     {
@@ -25,18 +31,30 @@ public class Connection
     {
         return userName;
     }
-    public void send_message(Message message)
+    public ObjectOutputStream getOutputStream()
     {
-        try{
-            output.writeObject(message);
+        return this.output;
+    }
+    
+    public ObjectInputStream getInputStream()
+    {
+        return this.input;
+    }
+   
+    
+    void send_message(Message m)
+    {
+        //System.out.println(outToServer);
+        try
+        {
+            output.writeObject(m);
         }
-        catch (IOException e)
+        catch(Exception e)
         {
             System.out.println(e);
+            System.out.println("Message not sent. Try again...");
         }
     }
     
-    
-    
-    
+   
 }

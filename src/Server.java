@@ -19,6 +19,7 @@ import java.util.Scanner;
 
 public class Server {
     private ServerSocket welcomeSocket=null;
+    Socket newConnection;
     public static ArrayList<Connection> connections = new ArrayList<>();
     
     public static void main(String args[]) throws Exception {
@@ -38,41 +39,75 @@ public class Server {
     
     private Server() 
     {
-        Connection connection;
+        
         System.out.println("Waiting for connection...");
 		try
         {
-            welcomeSocket = new ServerSocket(7000);
+            welcomeSocket = new ServerSocket(7003);
             while(true)
             {
-                Socket newConnection=null;
-		newConnection = welcomeSocket.accept();
-		System.out.println("Connection made");
-		InputStream inFromClient = newConnection.getInputStream();
-		ObjectInputStream in = new ObjectInputStream(inFromClient);
-		String userName=(String)in.readObject();
-			               
-                String onlineUsers="";
-	        int count=1;
-	            
-	        for(Connection user:connections)
-	        {
-	            onlineUsers+=count+" "+user.getUserName()+"\n";
-	        }
-	                        
-	        OutputStream out = newConnection.getOutputStream();
-	        ObjectOutputStream outToClient = new ObjectOutputStream(out);
-	        outToClient.writeObject(onlineUsers);
-	                        
-	        System.out.println("Connection made with "+userName);
-	        connection = new Connection(newConnection);
-	                        
-	        connection.setUserName(userName);
-	        connections.add(connection);
+                newConnection = welcomeSocket.accept();
+                Thread socket = new Thread()
+                {
+                    @Override
+                    public void run()
+                    {
+                        
+                        try
+                        {
+                            
+                            InputStream in = newConnection.getInputStream();
+                            OutputStream out = newConnection.getOutputStream();
+                            ObjectInputStream inFromClient = new ObjectInputStream(in);
+                            ObjectOutputStream outToClient = new ObjectOutputStream(out);
 
-	        System.out.println("Waiting for another connection...");
+                            String userName=(String)inFromClient.readObject();
+
+                            String onlineUsers="";
+                            int count=1;
+
+                            for(Connection user:connections)
+                            {
+                                onlineUsers+=count+" "+user.getUserName()+"\n";
+                            }
+
+                            
+                            //outToClient ;
+                            outToClient.writeObject(onlineUsers);
+
+                            System.out.println("Connection made with "+userName+"\n"+"Waiting for another connection...");
+                            Connection connection = new Connection(newConnection,inFromClient,outToClient);
+                            connection.setUserName(userName);
+                            broadcast_message(userName+" joined group.",userName);
+                            connections.add(connection);
+
+                            while(true)
+                            {
+                                Message messageFromClient=(Message)inFromClient.readObject();
+                                //if(messageFromClient)
+                                //System.out.println("Here");
+                                if(messageFromClient.getUserFrom().equals(userName))
+                                {
+
+                                }
+                            }
+                            
+                            
+                        }
+                        catch(Exception e)
+                        {
+                            System.out.println("I'm not entirely sure how this is supposed to work");
+                            System.out.println(e);
+                        }
+                    }
+                };socket.start();
+	        
+
+	        
 
 	        checkConnections();
+                
+                
 
 	            
 	    }
@@ -84,5 +119,24 @@ public class Server {
         }
         
    
+    }
+    
+    void broadcast_message(String m, String userName)
+    {
+        for(Connection user: connections)
+        {
+            if(!userName.equals(user.getUserName()))
+            {
+                try
+                {
+                    user.getOutputStream().writeObject(new Message(m));
+                }
+                catch(Exception e)
+                {
+                    System.out.println(e);
+                }
+                
+            }
+        }   
     }
 }

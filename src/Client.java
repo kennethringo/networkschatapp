@@ -40,7 +40,7 @@ public class Client
         
         try
         {
-            clientSocket = new Socket(IP, 7000);
+            clientSocket = new Socket(IP, 7003);
             System.out.println("Connection with server "+IP+" made.");
             
             
@@ -57,14 +57,14 @@ public class Client
             String onlineUsers="";
             onlineUsers=(String)inFromServer.readObject();
             if(onlineUsers.length()==0){
-                System.out.println("No online users as yet");
+                System.out.println("No online users as yet\n");
             }
             else
             {
                 System.out.println(onlineUsers);
             }
 
-            System.out.print("Enter text message then press ENTER to send message to everyone in Group.\n"
+            System.out.println("Enter text message then press ENTER to send message to everyone in Group.\n"
                 + "-i [path/to/image/file.jpg]              - to send image file to everyone in group\n"
                 + "-u [userTo] [Text message]        - to send private text to specific user\n"
                 + "-ui [userTo] [path/to/image/file.jpg]            - to send image file to specific user\n");
@@ -94,13 +94,22 @@ public class Client
                         try
                         {
                             Message inMessage=(Message)inFromServer.readObject();
-                            if(inMessage.getMessageType().equals("textOnly"))
+                            if(inMessage.getMessageType().equals("textOnly")&&inMessage.getUserFrom()!=null)
                             {
                                 System.out.println(inMessage.getUserFrom()+":    "+inMessage.getText());
+                            }
+                            else if(inMessage.getMessageType().equals("textOnly"))
+                            {
+                                System.out.println(inMessage.getText());
                             }
                             else if(inMessage.getMessageType().equals("imageOnly"))
                             {
                                 saveImage(inMessage.getImage(),inMessage.getText());
+                            }
+                            else if(inMessage.getMessageType().equals("imageRequest"))
+                            {
+                                //sendingMessage.wait();
+                                System.out.println(inMessage.getUserFrom()+" is sending you a media file. \nEnter: '-m yes' to accept, '-m no' to reject");
                             }
                         }
                         catch(Exception e)
@@ -155,6 +164,8 @@ public class Client
         try
         {
             outToServer.writeObject(m);
+            System.out.println("Message Sent");
+            outToServer.flush();
         }
         catch(Exception e)
         {
