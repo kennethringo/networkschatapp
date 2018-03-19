@@ -120,7 +120,6 @@ public class Server {
 
                                         BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageAr));
 
-
                                         System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + ": " + System.currentTimeMillis());
                                         for(Connection user: connections)
                                         {
@@ -158,53 +157,6 @@ public class Server {
                                 // else {
                                 //     messageFromClient=(Message)inFromClient.readObject();
                                 // }
-
-                                System.out.println(messageFromClient.getMessageType());
-                                if (messageFromClient.getUserTo()==null)
-                                {
-                                	for(Connection user: connections)
-							        {
-							            if(!userName.equals(user.getUserName()))
-							            {
-							                try
-							                {
-							                    user.getOutputStream().writeObject(new Message(messageFromClient));
-							                }
-							                catch(Exception e)
-							                {
-							                    System.out.println(e);
-							                }
-							                
-							            }
-							        }
-                                }
-                                else if (messageFromClient.getUserTo()!=null)
-                                {
-                                	boolean found = false;
-                                	for(Connection user: connections)
-							        {
-							            if(messageFromClient.getUserTo().equals(user.getUserName()))
-							            {
-							                try
-							                {
-							                    user.getOutputStream().writeObject(new Message(messageFromClient));
-							                    found = true;
-							                }
-							                catch(Exception e)
-							                {
-							                    System.out.println(e);
-							                }
-							                
-							            }
-							        }
-							        if(!found)
-							        {
-							        	Message m = new Message(messageFromClient.getUserTo() +" not found in chat", messageFromClient.getUserTo());
-							        	m.setMessageType("serverResponse");
-							        	outToClient.writeObject(m);
-							        }
-                                }
-
                                 
                             }
                             
