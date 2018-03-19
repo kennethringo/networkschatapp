@@ -8,7 +8,7 @@ vpath %.class bin/
 .java.class:
 	javac $(JFLAGS) $<
 
-all: Message.class Connection.class Server.class Client.class
+all: Message.class Connection.class  Server.class Client.class
 
 Connection.class:
 	rm -rf bin/Connection.class
@@ -25,7 +25,6 @@ Server.class:
 Client.class:
 	rm -rf bin/Client.class
 	javac $(JFLAGS) src/Client.java
-
 
 run: clean all
 	@gnome-terminal -e "java -cp bin Server"

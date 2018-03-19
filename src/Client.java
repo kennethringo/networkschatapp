@@ -64,10 +64,10 @@ public class Client
                 System.out.println(onlineUsers);
             }
 
-            System.out.println("Enter text message then press ENTER to send message to everyone in Group.\n"
-                + "-i [path/to/image/file.jpg]              - to send image file to everyone in group\n"
-                + "-u [userTo] [Text message]        - to send private text to specific user\n"
-                + "-ui [userTo] [path/to/image/file.jpg]            - to send image file to specific user\n");
+            System.out.println("[Text message]                         - to send text message to everyone in group\n"
+                             + "-i [path/to/image/file.jpg]            - to send image file to everyone in group\n"
+                             + "-u [userTo] [Text message]             - to send text message to only to one specific user\n"
+                             + "-ui [userTo] [path/to/image/file.jpg]  - to send image file to specific user\n");
 
             
             
@@ -103,13 +103,20 @@ public class Client
                                 System.out.println(inMessage.getText());
                             }
                             else if(inMessage.getMessageType().equals("imageOnly"))
-                            {
+                            {   
+                                System.out.println("New image file from "+inMessage.getUserFrom());
+                                
                                 saveImage(inMessage.getImage(),inMessage.getText());
                             }
                             else if(inMessage.getMessageType().equals("imageRequest"))
                             {
                                 //sendingMessage.wait();
                                 System.out.println(inMessage.getUserFrom()+" is sending you a media file. \nEnter: '-m yes' to accept, '-m no' to reject");
+                            }
+                            else if(inMessage.getMessageType().equals("serverResponse"))
+                            {
+                                //sendingMessage.wait();
+                                System.out.println(inMessage.getText());
                             }
                         }
                         catch(Exception e)
@@ -145,7 +152,8 @@ public class Client
         FileOutputStream fos;
         try 
         {
-            fos = new FileOutputStream("fileName.jpg");
+
+            fos = new FileOutputStream("random.jpg");
             fos.write(image);
             fos.close();
         }
@@ -164,7 +172,7 @@ public class Client
         try
         {
             outToServer.writeObject(m);
-            System.out.println("Message Sent");
+            //System.out.println("Message Sent");
             outToServer.flush();
         }
         catch(Exception e)
@@ -210,6 +218,23 @@ public class Client
                 return null;
             }
         }
+        else if(message[0].equals("-u"))
+        {
+            if(message.length>2)
+            {
+                String m="";
+                for(int i=2;i<message.length;i++)
+                {
+                    m+=message[i]+" ";
+                }
+                return (new Message(m, this.clientName,message[1]));
+            }
+            else
+            {
+                System.out.println("Wrong format '-u [usernameTo] [text]'");
+                return null;
+            }
+        }
         // text message to everyone
         else
         {
@@ -220,7 +245,9 @@ public class Client
     
     byte[] readImage(String ImageName) throws IOException
     {
-        System.out.println("Reading image");
+        //System.out.println("Reading image");
+        System.out.println(ImageName);
+
         File imgPath = new File(ImageName);
         BufferedImage bufferedImage = ImageIO.read(imgPath);
 

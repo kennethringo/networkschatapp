@@ -68,7 +68,8 @@ public class Server {
 
                             for(Connection user:connections)
                             {
-                                onlineUsers+=count+" "+user.getUserName()+"\n";
+                                onlineUsers+=count+". "+user.getUserName()+"\n";
+                                count++;
                             }
 
                             
@@ -97,22 +98,53 @@ public class Server {
                                         System.out.println(e);
                                     }
                                 }*/
+
                                 System.out.println(messageFromClient.getMessageType());
-                                for(Connection user: connections)
-						        {
-						            if(!userName.equals(user.getUserName()))
-						            {
-						                try
-						                {
-						                    user.getOutputStream().writeObject(new Message(messageFromClient));
-						                }
-						                catch(Exception e)
-						                {
-						                    System.out.println(e);
-						                }
-						                
-						            }
-						        }
+                                if (messageFromClient.getUserTo()==null)
+                                {
+                                	for(Connection user: connections)
+							        {
+							            if(!userName.equals(user.getUserName()))
+							            {
+							                try
+							                {
+							                    user.getOutputStream().writeObject(new Message(messageFromClient));
+							                }
+							                catch(Exception e)
+							                {
+							                    System.out.println(e);
+							                }
+							                
+							            }
+							        }
+                                }
+                                else if (messageFromClient.getUserTo()!=null)
+                                {
+                                	boolean found = false;
+                                	for(Connection user: connections)
+							        {
+							            if(messageFromClient.getUserTo().equals(user.getUserName()))
+							            {
+							                try
+							                {
+							                    user.getOutputStream().writeObject(new Message(messageFromClient));
+							                    found = true;
+							                }
+							                catch(Exception e)
+							                {
+							                    System.out.println(e);
+							                }
+							                
+							            }
+							        }
+							        if(!found)
+							        {
+							        	Message m = new Message(messageFromClient.getUserTo() +" not found in chat", messageFromClient.getUserTo());
+							        	m.setMessageType("serverResponse");
+							        	outToClient.writeObject(m);
+							        }
+                                }
+                                
                             }
                             
                             
