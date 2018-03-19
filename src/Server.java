@@ -10,7 +10,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
-
+import java.nio.ByteBuffer;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import javax.imageio.ImageIO;
 /**
  * 
  * @author sbnnko004
@@ -19,6 +22,8 @@ import java.util.Scanner;
 
 public class Server {
     private ServerSocket welcomeSocket=null;
+    private InputStream in;
+    private OutputStream out;
     Socket newConnection;
     public static ArrayList<Connection> connections = new ArrayList<>();
     
@@ -56,8 +61,8 @@ public class Server {
                         try
                         {
                             
-                            InputStream in = newConnection.getInputStream();
-                            OutputStream out = newConnection.getOutputStream();
+                            in = newConnection.getInputStream();
+                            out = newConnection.getOutputStream();
                             ObjectInputStream inFromClient = new ObjectInputStream(in);
                             ObjectOutputStream outToClient = new ObjectOutputStream(out);
 
@@ -68,7 +73,8 @@ public class Server {
 
                             for(Connection user:connections)
                             {
-                                onlineUsers+=count+" "+user.getUserName()+"\n";
+                                onlineUsers+=count+". "+user.getUserName()+"\n";
+                                count++;
                             }
 
                             
@@ -97,23 +103,61 @@ public class Server {
                                         System.out.println(e);
                                     }
                                 }*/
+                                // if (messageFromClient != null){
+                                    System.out.println("before message type");
+                                    System.out.println("this is the type:" + messageFromClient.getMessageType());
+                                    
+                                    if (messageFromClient.getMessageType().equals("imageOnly")){
+                                        System.out.println("in receive message");
+                                        in = newConnection.getInputStream();
 
-                                System.out.println(messageFromClient.getMessageType());
-                                for(Connection user: connections)
-						        {
-						            if(!userName.equals(user.getUserName()))
-						            {
-						                try
-						                {
-						                    user.getOutputStream().writeObject(new Message(messageFromClient));
-						                }
-						                catch(Exception e)
-						                {
-						                    System.out.println(e);
-						                }
-						                
-						            }
-						        }
+                                        byte[] sizeAr = new byte[4];
+                                        inFromClient.read(sizeAr);
+                                        int size = ByteBuffer.wrap(sizeAr).asIntBuffer().get();
+
+                                        byte[] imageAr = new byte[size];
+                                        inFromClient.read(imageAr);
+
+                                        BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageAr));
+
+                                        System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + ": " + System.currentTimeMillis());
+                                        for(Connection user: connections)
+                                        {
+                                            if(!userName.equals(user.getUserName()))
+                                            {
+                                                try
+                                                {
+                                                    user.getOutputStream().writeObject(new Message(messageFromClient));
+                                                }
+                                                catch(Exception e)
+                                                {
+                                                    System.out.println(e);
+                                                }
+                                                
+                                            }
+                                        }
+                                        // ImageIO.write(image, "jpg", new File("C:\\Users\\Jakub\\Pictures\\test2.jpg"));
+                                    }
+                                    for(Connection user: connections)
+                                    {
+                                        if(!userName.equals(user.getUserName()))
+                                        {
+                                            try
+                                            {
+                                                user.getOutputStream().writeObject(new Message(messageFromClient));
+                                            }
+                                            catch(Exception e)
+                                            {
+                                                System.out.println(e);
+                                            }
+                                            
+                                        }
+                                    }
+                                // }
+                                // else {
+                                //     messageFromClient=(Message)inFromClient.readObject();
+                                // }
+                                
                             }
                             
                             

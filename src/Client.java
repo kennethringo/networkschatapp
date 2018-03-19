@@ -12,14 +12,17 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 import javax.imageio.ImageIO;
-
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 
 public class Client 
 {
     private Socket clientSocket;
     private Scanner inFromUser = new Scanner(System.in);
     private ObjectOutputStream outToServer;
+    private OutputStream out;
     private ObjectInputStream  inFromServer;
+    private InputStream in;
     private String clientName;
     String userInput="";
     
@@ -45,14 +48,14 @@ public class Client
             
             
             
-            OutputStream out = clientSocket.getOutputStream();
+            out = clientSocket.getOutputStream();
             outToServer = new ObjectOutputStream(out);
             System.out.println("Enter you preferred username: ");
             clientName=inFromUser.next();
             outToServer.writeObject(clientName);
         
             System.out.println("\nConnected Users:");
-            InputStream in = clientSocket.getInputStream();
+            in = clientSocket.getInputStream();
             inFromServer= new ObjectInputStream(in);
             String onlineUsers="";
             onlineUsers=(String)inFromServer.readObject();
@@ -141,24 +144,7 @@ public class Client
         
         
     }
-    void saveImage(byte[] image, String fileName)
-    {
-        FileOutputStream fos;
-        try 
-        {
-            fos = new FileOutputStream("random.jpg");
-            fos.write(image);
-            fos.close();
-        }
-        catch(Exception e)
-        {
-            System.out.println("Failed to save "+fileName);
-            System.out.println(e);
-        }
-        
-            
-       
-    }
+    
     void send_message(Message m)
     {
         //System.out.println(outToServer);
@@ -170,9 +156,13 @@ public class Client
         }
         catch(Exception e)
         {
-            System.out.println(e);
+            // System.out.println(e);
             System.out.println("Message not sent. Try again...");
         }
+        // catch (NullPointerException n){
+        //     // System.out.println(e);
+        //     System.out.println("Cannot send. Try again...");
+        // }
     }
 
     Message getMessage(String userInput)
@@ -186,7 +176,8 @@ public class Client
                 if((message[1].substring(message[1].indexOf(".")+1,message[1].length())).equals("jpg")||(message[1].substring(message[1].indexOf(".")+1,message[1].length())).equals("jpeg")||(message[1].substring(message[1].indexOf(".")+1,message[1].length())).equals("png"))
                 {
                     try
-                    {
+                    {   
+                        // if (image != null)
                         return new Message(this.clientName,message[1],readImage(message[1]));
                     }
                     catch(Exception e)
@@ -218,15 +209,57 @@ public class Client
 
     
     byte[] readImage(String ImageName) throws IOException
-    {
+    {   
         System.out.println(ImageName);
         File imgPath = new File(ImageName);
         BufferedImage bufferedImage = ImageIO.read(imgPath);
+        WritableRaster raster = bufferedImage.getRaster();
+        // BufferedImage newImg = new BufferedImage(raster.getWidth(), raster.getHeight(), "jpg");
+        // try{
+            
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "jpg", byteArrayOutputStream);
 
-        // get DataBufferBytes from Raster
-        WritableRaster raster = bufferedImage .getRaster();
-        DataBufferByte data   = (DataBufferByte) raster.getDataBuffer();
+            // OutputStream out = clientSocket.getOutputStream();
+            byte[] size = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
+            outToServer.writeObject(size);
+            outToServer.writeObject(byteArrayOutputStream.toByteArray());
+            outToServer.flush();
 
-        return ( data.getData() );
+            try {
+                Thread.sleep(120000);                 //1000 milliseconds is one second.
+            } catch(InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            
+            // get DataBufferBytes from Raster
+           
+            DataBufferByte data   = (DataBufferByte) raster.getDataBuffer();
+
+            return ( data.getData() );
+        // }catch (NullPointerException e){
+        //     System.out.println("Image not found");
+           
+        // }
+        
+    }
+
+    void saveImage(byte[] image, String fileName)
+    {
+        FileOutputStream fos;
+        try 
+        {
+            fos = new FileOutputStream("random.jpg");
+            fos.write(image);
+            fos.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Failed to save "+fileName);
+            System.out.println(e);
+        }
+        
+            
+       
     }
 }

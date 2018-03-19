@@ -30,7 +30,8 @@ public class Message implements Serializable{
      * 
      */
     protected Message(String userFrom,String userTo, String fileName,byte[] image)
-    {
+    {   
+        // if (image != null)
         this.MessageType="imageOnly";this.userFrom=userFrom;this.text=fileName;this.userTo=userTo;this.image=image;
     }
 
