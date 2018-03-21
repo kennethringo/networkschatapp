@@ -23,18 +23,20 @@ public class Client
     private ObjectOutputStream outToServer;
     private ObjectInputStream  inFromServer;
     private String clientName;
+    private boolean hasQuit;
+    private Message outMessage;
     String userInput="";
     
     public static void main(String[] args)
     {
         
         new Client();
+
     }
     
     private Client()
     {
-        System.out.print("Enter Servers IP (default is localhost): ");
-        String IP = inFromUser.nextLine();
+        String IP = "";
         if (IP.equals(""))
         {
             IP = "localhost"; 
@@ -42,6 +44,7 @@ public class Client
         
         try
         {
+        	hasQuit=false;
             clientSocket = new Socket(IP, 7003);
             System.out.println("Connection with server "+IP+" made.");
             
@@ -69,7 +72,8 @@ public class Client
             System.out.println("[Text message]                         - to send text message to everyone in group\n"
                              + "-i [path/to/image/file.jpg]            - to send image file to everyone in group\n"
                              + "-u [userTo] [Text message]             - to send text message to only to one specific user\n"
-                             + "-ui [userTo] [path/to/image/file.jpg]  - to send image file to specific user\n");
+                             + "-ui [userTo] [path/to/image/file.jpg]  - to send image file to specific user\n"
+                             + "quit                                   - to leave chat and exit program.\n");
 
             
             
@@ -78,10 +82,16 @@ public class Client
                 @Override
                 public void run()
                 {
-                    while(true)
+                    while(!hasQuit)
                     {
                         userInput=(new Scanner(System.in)).nextLine();
-                        Message outMessage = getMessage(userInput);
+                        
+                        if(userInput.equals("quit"))
+                        {
+                        	//Server.remove(clientName);
+                        	hasQuit=true;
+                        }
+                        outMessage = getMessage(userInput);
                         //System.out.println(outMessage.getImage());
                         send_message(outMessage);
                     }
@@ -92,7 +102,7 @@ public class Client
             {
                 @Override
                 public void run(){
-                    while(true)
+                    while(!hasQuit)
                     {
                         try
                         {
@@ -114,7 +124,7 @@ public class Client
                             else if(inMessage.getMessageType().equals("imageRequest"))
                             {
                                 //sendingMessage.wait();
-                                System.out.print(inMessage.getUserFrom()+" is sending you a media file. \nEnter: '-m yes' to accept, '-m no' to reject");
+                                System.out.println(inMessage.getUserFrom()+" wants to send you a media file. \nEnter '-m yes' to accept, '-m no' to reject");
                             }
                             else if(inMessage.getMessageType().equals("serverResponse"))
                             {
@@ -194,7 +204,14 @@ public class Client
     {
         String[] message = userInput.split(" ");
         // image to everyone
-        if(message[0].equals("-i"))
+        if(message[0].equals("-m"))
+        {
+        	Message m = new Message(message[1]);
+        	m.setMessageType("imageRequest");
+        	
+        	return(m);
+        }
+        else if(message[0].equals("-i"))
         {
             if(message.length==2)
             {
@@ -261,11 +278,24 @@ public class Client
                 {
                     m+=message[i]+" ";
                 }
-                return (new Message(m, this.clientName,message[1]));
+                try
+                {
+                    byte[] image = readImage(message[2]);
+
+                    return (new Message(this.clientName,message[1],message[2],image));
+                }
+                catch(Exception e)
+                {
+                	System.out.println("Failed to send image.");
+                	System.out.println(e);
+                	return null;
+                }
+                //byte[] image = readImage(message[1]);
+                
             }
             else
             {
-                System.out.println("Wrong format '-u [usernameTo] [text]'");
+                System.out.println("Wrong format '-ui [usernameTo] [path/to/image/file.jpg]'");
                 return null;
             }
         }

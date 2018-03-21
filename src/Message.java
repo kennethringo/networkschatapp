@@ -67,6 +67,10 @@ public class Message implements Serializable{
     {
         this.MessageType=MessageType;
     }
+    protected void setUserFrom(String user)
+    {
+        this.userFrom=user;
+    }
     protected String getText()
     {
 	   return text;

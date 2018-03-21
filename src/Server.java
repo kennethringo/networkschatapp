@@ -60,7 +60,7 @@ public class Server {
                             OutputStream out = newConnection.getOutputStream();
                             ObjectInputStream inFromClient = new ObjectInputStream(in);
                             ObjectOutputStream outToClient = new ObjectOutputStream(out);
-
+                            Message toBeSent=null;
                             String userName=(String)inFromClient.readObject();
 
                             String onlineUsers="";
@@ -85,36 +85,74 @@ public class Server {
                             while(true)
                             {
                                 Message messageFromClient=(Message)inFromClient.readObject();
-                                //if(messageFromClient)
-                                //System.out.println("Here");
-                                /*if(messageFromClient.getUserFrom().equals(userName))
-                                {
-                                    try
-                                    {
-                                        outToClient.writeObject(new Message(m));
-                                    }
-                                    catch(Exception e)
-                                    {
-                                        System.out.println(e);
-                                    }
-                                }*/
-
-                                //System.out.println(messageFromClient.getMessageType());
-                                //System.out.println(messageFromClient.getImage());
+                               
                                 if (messageFromClient.getUserTo()==null)
                                 {
                                 	for(Connection user: connections)
 							        {
 							            if(!userName.equals(user.getUserName()))
 							            {
-							                try
-							                {
-							                    user.getOutputStream().writeObject(new Message(messageFromClient));
-							                }
-							                catch(Exception e)
-							                {
-							                    System.out.println(e);
-							                }
+							            	if(messageFromClient.getMessageType().equals("imageRequest"))
+							            	{
+							            		if(messageFromClient.getText().equals("yes"))
+							           			{
+							           				try
+							           				{
+							           					//System.out.println("here");
+							           					user.getOutputStream().writeObject(new Message(toBeSent));
+							            				outToClient.writeObject(new Message(user.getUserName() +" accepted your media file."));
+							            				break;
+							            			}
+							            			catch(Exception e)
+							            			{
+							            				System.out.println(e);
+							            			}
+							            		}
+							            		else
+							            		{
+							            			try
+							            			{
+							            				outToClient.writeObject(new Message(user.getUserName() +" rejected your media file."));
+							            			}
+							            			catch(Exception e)
+							            			{
+							            				System.out.println(e);
+							            			}
+							            		}
+							            		break;
+							            	}
+							            	else if(messageFromClient.getMessageType().equals("imageOnly"))
+							            	{
+							            		try
+							            		{
+							            			toBeSent = new Message("request",userName);
+							            			toBeSent.setMessageType("imageRequest"); 
+							            			user.getOutputStream().writeObject(toBeSent);
+							            			toBeSent=new Message(messageFromClient);
+							            			//messageFromClient=(Message)inFromClient.readObject();
+							            			
+							            		}
+							            		catch(Exception e)
+							            		{
+							            			System.out.println(e);
+							            		}
+							            	}
+							            	/*else if () {
+							            		
+							            	}*/
+							            	else
+							            	{
+							            		try
+							            		{
+							            			user.getOutputStream().writeObject(new Message(messageFromClient));
+							            		}
+							            		catch(Exception e)
+							            		{
+							            			System.out.println(e);
+							            		}
+							            	}
+							            	break;
+
 							                
 							            }
 							        }
@@ -192,6 +230,19 @@ public class Server {
                 {
                     System.out.println(e);
                 }
+                
+            }
+        }
+    }
+
+    void remove(String client)
+    {
+    	for(Connection user: connections)
+        {
+            if(client.equals(user.getUserName()))
+            {
+                connections.remove(user);
+                broadcast_message(client+" has left chat.", "");
                 
             }
         }
