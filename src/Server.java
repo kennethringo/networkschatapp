@@ -99,7 +99,8 @@ public class Server {
                                     }
                                 }*/
 
-                                System.out.println(messageFromClient.getMessageType());
+                                //System.out.println(messageFromClient.getMessageType());
+                                //System.out.println(messageFromClient.getImage());
                                 if (messageFromClient.getUserTo()==null)
                                 {
                                 	for(Connection user: connections)

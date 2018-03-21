@@ -2,6 +2,8 @@
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -80,6 +82,7 @@ public class Client
                     {
                         userInput=(new Scanner(System.in)).nextLine();
                         Message outMessage = getMessage(userInput);
+                        //System.out.println(outMessage.getImage());
                         send_message(outMessage);
                     }
                 }
@@ -105,13 +108,13 @@ public class Client
                             else if(inMessage.getMessageType().equals("imageOnly"))
                             {   
                                 System.out.println("New image file from "+inMessage.getUserFrom());
-                                
+                                //System.out.println(inMessage.getImage());
                                 saveImage(inMessage.getImage(),inMessage.getText());
                             }
                             else if(inMessage.getMessageType().equals("imageRequest"))
                             {
                                 //sendingMessage.wait();
-                                System.out.println(inMessage.getUserFrom()+" is sending you a media file. \nEnter: '-m yes' to accept, '-m no' to reject");
+                                System.out.print(inMessage.getUserFrom()+" is sending you a media file. \nEnter: '-m yes' to accept, '-m no' to reject");
                             }
                             else if(inMessage.getMessageType().equals("serverResponse"))
                             {
@@ -149,19 +152,24 @@ public class Client
     }
     void saveImage(byte[] image, String fileName)
     {
-        FileOutputStream fos;
-        try 
+        
+        try
         {
+            // convert byte array back to BufferedImage
 
-            fos = new FileOutputStream("random.jpg");
+            FileOutputStream fos = new FileOutputStream(clientName+fileName);
+            int i = image.length;
+            System.out.println(i);
             fos.write(image);
-            fos.close();
+            
         }
         catch(Exception e)
         {
-            System.out.println("Failed to save "+fileName);
+            System.out.println("no saving picture");
             System.out.println(e);
         }
+        
+        //
         
             
        
@@ -188,23 +196,32 @@ public class Client
         // image to everyone
         if(message[0].equals("-i"))
         {
-            if (message[1].length()>4)
+            if(message.length==2)
             {
-                if((message[1].substring(message[1].indexOf(".")+1,message[1].length())).equals("jpg")||(message[1].substring(message[1].indexOf(".")+1,message[1].length())).equals("jpeg")||(message[1].substring(message[1].indexOf(".")+1,message[1].length())).equals("png"))
+                if (message[1].length()>4)
                 {
-                    try
+                    if((message[1].substring(message[1].indexOf(".")+1,message[1].length())).equals("jpg")||(message[1].substring(message[1].indexOf(".")+1,message[1].length())).equals("jpeg")||(message[1].substring(message[1].indexOf(".")+1,message[1].length())).equals("png"))
                     {
-                        System.out.println("Picture");
-                        return new Message(this.clientName,message[1],readImage(message[1]));
+                        try
+                        {
+                            byte[] image = readImage(message[1]);
+                            Message m = new Message(this.clientName,message[1],image);
+                            return m;
 
+                        }
+                        catch(Exception e)
+                        {
+                            System.out.println("Failed to send image.");
+                            System.out.println(e);
+                            return null;
+                        }
+                        
                     }
-                    catch(Exception e)
+                    else
                     {
-                        System.out.println("Failed to send image.");
-                        System.out.println(e);
+                        System.out.println("incorrect file format "+message[1]);
                         return null;
                     }
-                    
                 }
                 else
                 {
@@ -214,11 +231,28 @@ public class Client
             }
             else
             {
-                System.out.println("incorrect file format "+message[1]);
+                System.out.println("incorrect format 'i [path/to/image/file.jpg]'");
                 return null;
             }
         }
         else if(message[0].equals("-u"))
+        {
+            if(message.length>2)
+            {
+                String m="";
+                for(int i=2;i<message.length;i++)
+                {
+                    m+=message[i]+" ";
+                }
+                return (new Message(m, this.clientName,message[1]));
+            }
+            else
+            {
+                System.out.println("Wrong format '-u [usernameTo] [text]'");
+                return null;
+            }
+        }
+        else if(message[0].equals("-ui"))
         {
             if(message.length>2)
             {
@@ -245,16 +279,11 @@ public class Client
     
     byte[] readImage(String ImageName) throws IOException
     {
-        //System.out.println("Reading image");
-        System.out.println(ImageName);
-
-        File imgPath = new File(ImageName);
-        BufferedImage bufferedImage = ImageIO.read(imgPath);
-
-        // get DataBufferBytes from Raster
-        WritableRaster raster = bufferedImage .getRaster();
-        DataBufferByte data   = (DataBufferByte) raster.getDataBuffer();
-
-        return ( data.getData() );
+        File fnew=new File(ImageName);
+		BufferedImage originalImage=ImageIO.read(fnew);
+		ByteArrayOutputStream baos=new ByteArrayOutputStream();
+		ImageIO.write(originalImage, "jpg", baos );
+		byte[] imageInByte=baos.toByteArray();
+		return imageInByte;
     }
 }
