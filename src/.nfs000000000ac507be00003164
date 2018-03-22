@@ -98,7 +98,14 @@ public class Client
                         else if (outMessage.getMessageType().equals("imageResponse")){
                             System.out.println("user response: " + userInput);
                             send_message(outMessage);
+                            // boolean accept = acceptMessage(userInput);
+                            // toBeAccepted.setInformation(userInput);
+                            // toBeAccepted.setAccept(accept); //set response to server request to true or false
                             
+                            // send_message(toBeAccepted);
+                            // System.out.println("image accepted");
+                            // s1.requestLocked = false;
+                            // System.out.println(s1.requestLocked);
 
 
                         }
@@ -138,9 +145,44 @@ public class Client
                             else if(inMessage.getMessageType().equals("imageResponse"))
                             {
                                 
-                                //will print what server tells user about request
+                                // Message imageResponse = new Message(clientName,false);
                                 System.out.println(inMessage.getInformation());
+                                // do {
+                                // String userFrom , String information, boolean accept
+                                // toBeAccepted = inMessage;
+                                // toBeAccepted.setUserFrom(inMessage.getUserFrom());
+                                // toBeAccepted.setInformation("");
+                                // toBeAccepted.setAccept(false);
+                                // sendingMessage.run();
+
+                                //    // if (userInput == "yes" || userInput == "no"){
+                                //    //  break;
+                                //    // }
+
+                                //    System.out.println("not a valid response. Answer 'yes' or 'no' to respond"); 
+                                // }
+                                // //loop to get yes or no answer
                                 
+                                // while (userInput != "yes" && userInput != "no");
+                                // {
+                                    
+                                    
+                                    // sendingMessage.run();
+                                // }
+                                // if (userInput == "yes" || userInput == "no"){
+                                
+                                
+                                // }else{
+                                    // while (userInput != "yes" && userInput != "no"){
+                                    
+                                        
+                                        
+                                    // }
+
+                                    // boolean accept = acceptMessage(userInput);
+                                    // inMessage.setAccept(accept); //set response to server request to true or false
+                                    // outToServer.writeObject(inMessage);
+                                // }
                                 
 
                                 
@@ -242,7 +284,7 @@ public class Client
                 return null;
             }
         }
-        //this is how we answer requests
+
         else if(message[0].equals("-r"))
         {
             if (message[1].equals("yes")){
@@ -267,7 +309,23 @@ public class Client
     
     Message readImage(String ImageName) throws IOException
     {   
-        
+        //old
+        //System.out.println("Reading image");
+        // System.out.println(ImageName);
+
+        // File imgPath = new File(ImageName);
+        // BufferedImage bufferedImage = ImageIO.read(imgPath);
+
+        // get DataBufferBytes from Raster
+        // WritableRaster raster = bufferedImage .getRaster();
+        // DataBufferByte data   = (DataBufferByte) raster.getDataBuffer();
+
+        // return ( data.getData() );
+        //old
+
+            //new
+        // Socket socket = new Socket("localhost", 13085);
+        // OutputStream outputStream = socket.getOutputStream();
         System.out.println(ImageName);
         File imgPath = new File(ImageName);
         System.out.println(imgPath.getName() + "%%%%%");
@@ -280,9 +338,13 @@ public class Client
         byte[] size = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
         System.out.println (size.length + " $$$$$$$$$$");
         Message im = new Message(this.clientName,ImageName,size, byteArrayOutputStream.toByteArray());
+        // send_image(size, byteArrayOutputStream);
+
         
+        // socket.close();
+
         return im;
-      
+        //new
     }
 
     void send_message(Message m)
@@ -304,17 +366,22 @@ public class Client
 
      void send_image(Message image)
     {   
-        
+        // byte[] sz = size;
+        // ByteArrayOutputStream bs = bAOS;
+        //System.out.println(outToServer);
         try
         {   
-            
+            // outToServer.writeObject("image");
+            // outToServer.writeObject(sz);
+            // outToServer.writeObject(bs.toByteArray());
             outToServer.writeObject(image);
             outToServer.flush();
             System.out.println("Flushed: " + System.currentTimeMillis());
 
             Thread.sleep(120000);
             System.out.println("Closing: " + System.currentTimeMillis());
-            
+            // outToServer.writeObject(im);
+            //System.out.println("Message Sent");
             outToServer.flush();
         }
         catch(Exception e)

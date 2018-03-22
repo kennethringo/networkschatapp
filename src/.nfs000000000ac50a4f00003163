@@ -88,9 +88,21 @@ public class Server {
 
                             while(true)
                             {   
-                                
+                                // String type = inFromClient.readObject();
                                 Message messageFromClient=(Message)inFromClient.readObject();
-                                
+                                //if(messageFromClient)
+                                //System.out.println("Here");
+                                /*if(messageFromClient.getUserFrom().equals(userName))
+                                {
+                                    try
+                                    {
+                                        outToClient.writeObject(new Message(m));
+                                    }
+                                    catch(Exception e)
+                                    {
+                                        System.out.println(e);
+                                    }
+                                }*/
 
                                 System.out.println(messageFromClient.getMessageType());
                                 if (messageFromClient.getUserTo()==null)
@@ -129,11 +141,11 @@ public class Server {
                                             {
                                                 try
                                                 {   
-                                                    user.pendingMsgs.push(messageFromClient); //push new image onto user's stack of pending images
+                                                    user.pendingMsgs.push(messageFromClient);
 
                                                     request_message(messageFromClient);
                                                     
-                                                    
+                                                    // user.getOutputStream().writeObject();
                                                 }
                                                 catch(Exception e)
                                                 {
@@ -142,32 +154,52 @@ public class Server {
                                                 
                                             }
                                         }
-                                        
+                                        //new
+                                        // boolean [] shouldSendToUser = request_message(messageFromClient);
+
+
+                                        // for (int i = 0 ; i < connections.size(); i++){
+                                        //     if (shouldSendToUser[i] == true){
+                                        //         connections.get(i).getOutputStream().writeObject(new Message(messageFromClient.getUserFrom(),messageFromClient.getText(), messageFromClient.getSize(), messageFromClient.getByteArray()));
+                                        //         System.out.println("Image downloading...");
+                                        //     }else if (shouldSendToUser[i] == false && !(messageFromClient.getUserFrom()== connections.get(i).getUserName())){
+                                        //         System.out.println("Rejecting Image...");
+                                        //     }
+                                        // }
+                                        // //take 2
+                                        // for (int i = 0 ; i < connections.size();i++){
+                                        //     if (!(messageFromClient.getUserFrom()== connections.get(i).getUserName())){
+                                        //         Message request = new Message( msgSend.getUserFrom(), msgSend.getUserFrom() + 
+                                        //                         " would like to send you an image. Would you like to accept? \n yes/no to respond.", false);
+                                        //         connections.get(i).getOutputStream().writeObject(request);
+                                        //         // connections.get(i).getOutputStream().writeObject(messageFromClient.getUserFrom(),messageFromClient.getText(), messageFromClient.getSize(), messageFromClient.getByteArray()));
+                                        //     }
+                                        // }
+
                                     }
                                     else if (messageFromClient.getMessageType().equals("imageResponse")){
                                         for(Connection user: connections)
                                         {
                                             if (messageFromClient.getUserFrom().equals(user.getUserName())){
-                                                // System.out.println("response from server to: " + messageFromClient.getUserFrom());
+                                                System.out.println("response from server to: " + messageFromClient.getUserFrom());
                                                 if (messageFromClient.getInformation().equals("yes")){
-                                                    // System.out.println("client says yes");
-                                                    
-                                                    Message toSend = user.pendingMsgs.pop(); //pop image off and send to user
+                                                    System.out.println("client says yes");
+                                                    Message toSend = user.pendingMsgs.pop();
 
-                                                    // System.out.println("toSend from: " + toSend.getUserFrom() +" to "+ toSend.getUserTo());
-                                                    // System.out.println("toSend name: " + toSend.getText());
-                                                    // System.out.println("toSend type: " + toSend.getMessageType());
-                                                    // System.out.println("toSend byteArray: " + toSend.getByteArray());
+                                                    System.out.println("toSend from: " + toSend.getUserFrom() +" to "+ toSend.getUserTo());
+                                                    System.out.println("toSend name: " + toSend.getText());
+                                                    System.out.println("toSend type: " + toSend.getMessageType());
+                                                    System.out.println("toSend byteArray: " + toSend.getByteArray());
                                                     user.getOutputStream().writeObject(toSend);
                                                     System.out.println("wroteObject");
                                                 }
                                                 else if (messageFromClient.getInformation().equals("no")){
                                                     user.pendingMsgs.peek();
                                                 }else{
-                                                    Message resendRequest = (Message)user.pendingMsgs.peek(); //resend request until user answers -r yes/ -r no
-                                                    
+                                                    Message resendRequest = (Message)user.pendingMsgs.peek();
+                                                    // Message resendRequest1 = new Message (resendRequest.getUserFrom(), )
                                                     request_message(resendRequest);
-                                                    
+                                                    // user.pendingMsgs.push(resendRequest);
                                                 }
                                             }
                                         }
@@ -244,6 +276,21 @@ public class Server {
                         " would like to send you an image. Would you like to accept? \n '-r yes' / '-r no' to respond.", false);
                     System.out.println("this is request type: "+ request.getMessageType());
                     connections.get(i).getOutputStream().writeObject(request);
+
+                    // requestLocked = true;
+
+                    // while(requestLocked){
+                    //     wait();
+                    // }
+                    
+                    // // BufferedReader in = new BufferedReader(new InputStreamReader(welcomeSocket.accept().getInputStream()));
+                    // // String fromServer = in.readLine();
+
+                    // if (request.getAccept() == true){
+                    //     whoToSendTo[i] = true;
+                    // }else {
+                    //     whoToSendTo[i] = false;
+                    // }
                 }
                 catch(Exception e)
                 {
@@ -251,13 +298,61 @@ public class Server {
                 }
                 
             }
-            
+            // else { //exclude if index of sender
+            //     whoToSendTo[i] = false;
+            // }
             
         }
-        
+        // return whoToSendTo;
        
     }
-    
+    // public synchronized boolean [] request_message(Message msgSend) throws InterruptedException{ //broadcast
+    //     boolean whoToSendTo [] = new boolean[connections.size()];
+        
+    //     for (int i = 0 ; i < connections.size();i++){
+    //         if(!msgSend.getUserFrom().equals(connections.get(i).getUserName()))
+    //         {
+    //             try
+    //             {   
+    //                 System.out.println("from: " + msgSend.getUserFrom()+ " to: " + connections.get(i).getUserName());
+    //                 Message request = new Message( msgSend.getUserFrom(), msgSend.getUserFrom() + 
+    //                     " would like to send you an image. Would you like to accept? \n yes/no to respond.", false);
+                    
+    //                 connections.get(i).getOutputStream().writeObject(request);
+
+    //                 requestLocked = true;
+
+    //                 while(requestLocked){
+    //                     wait();
+    //                 }
+                    
+    //                 // BufferedReader in = new BufferedReader(new InputStreamReader(welcomeSocket.accept().getInputStream()));
+    //                 // String fromServer = in.readLine();
+
+    //                 if (request.getAccept() == true){
+    //                     whoToSendTo[i] = true;
+    //                 }else {
+    //                     whoToSendTo[i] = false;
+    //                 }
+    //             }
+    //             catch(Exception e)
+    //             {
+    //                 System.out.println(e);
+    //             }
+                
+    //         }else { //exclude if index of sender
+    //             whoToSendTo[i] = false;
+    //         }
+            
+    //     }
+    //     return whoToSendTo;
+       
+    // }
+
+    // boolean request_message(Client userFrom, Client userTo){
+    //     user.getOutputStream().writeObject(
+    // }
+   
     void send_message(Message m, String userTo)
     {
         for(Connection user: connections)

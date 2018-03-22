@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-
+import java.util.Stack;
 public class Connection
 {
     protected Socket connection;
@@ -14,10 +14,12 @@ public class Connection
     public ObjectOutputStream output;
     public boolean hasNotQuit;
     private Message waiting;
+    public Stack <Message> pendingMsgs;
     
     public Connection(Socket connection, ObjectInputStream input,ObjectOutputStream output)
     {
         hasNotQuit = true;
+        pendingMsgs = new Stack<Message>();
         this.connection=connection;
         this.input=input;
         this.output=output;
