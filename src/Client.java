@@ -57,6 +57,7 @@ public class Client
             OutputStream out = clientSocket.getOutputStream();
             outToServer = new ObjectOutputStream(out);
             System.out.println("Enter you preferred username: ");
+
             clientName=inFromUser.next();
             outToServer.writeObject(clientName);
         
@@ -89,7 +90,7 @@ public class Client
                     {
                         userInput=(new Scanner(System.in)).nextLine();
                         Message outMessage = getMessage(userInput);
-                        System.out.println("after get message");
+                        // System.out.println("after get message");
 
 
                         if (outMessage == null){
@@ -103,7 +104,7 @@ public class Client
                         }
                         else if (outMessage.getMessageType().equals("imageOnly")){
                             send_image(outMessage);
-
+                            // System.out.println(ImageName);
                         }
 
                         else if (outMessage.getMessageType().equals("imageResponse")){
@@ -140,8 +141,8 @@ public class Client
                             else if(inMessage.getMessageType().equals("imageOnly"))
                             {   
                                 System.out.println("New image file from "+inMessage.getUserFrom());
-                                System.out.println(inMessage.getText());
-                                System.out.println(inMessage.getSize().length);
+                                // System.out.println(inMessage.getText());
+                                // System.out.println(inMessage.getSize().length);
                                 
                                 saveImage(inMessage.getText(), inMessage.getExtension(),  inMessage.getSize(), inMessage.getByteArray());
                             }
@@ -213,7 +214,7 @@ public class Client
                         //old
                         // return new Message(this.clientName,message[1],readImage(message[1]));
                         //new
-                         
+                        
                         return readImage(message[1], null);
                         
 
@@ -246,11 +247,11 @@ public class Client
                 {
                     try
                     {
-                        System.out.println("Picture");
+                        // System.out.println("Picture");
                         //old
                         // return new Message(this.clientName,message[1],readImage(message[1]));
                         //new
-                         
+                        
                         return readImage(message[2], message[1]);
                         
 
@@ -318,25 +319,26 @@ public class Client
     Message readImage(String ImageName, String userTo) throws IOException
     {   
         
-        System.out.println(ImageName);
+        // System.out.println(ImageName);
         File imgPath = new File(ImageName);
-        System.out.println(imgPath.getName() + "%%%%%");
+        // System.out.println(imgPath.getName() + "%%%%%");
 
         if(imgPath.exists() && !imgPath.isDirectory()) { 
             BufferedImage image = ImageIO.read(imgPath);
 
-            System.out.println("file name :'" + imgPath.getName() + "'");
+            // System.out.println("file name :'" + imgPath.getName() + "'");
         
-            System.out.println("attempting to split file name");
+            // System.out.println("attempting to split file name");
+            
+            // System.out.println ("splitInfo[0]: " + splitInfo[0]);
+            // System.out.println ("splitInfo[1]: " + splitInfo[1]);
             String [] splitInfo = imgPath.getName().split("\\.");
-            System.out.println ("splitInfo[0]: " + splitInfo[0]);
-            System.out.println ("splitInfo[1]: " + splitInfo[1]);
             
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(image, splitInfo[1], byteArrayOutputStream);
 
             byte[] size = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
-            System.out.println (size.length + " $$$$$$$$$$");
+            // System.out.println (size.length + " $$$$$$$$$$");
 
             Message im;
             
@@ -380,7 +382,7 @@ public class Client
             
             outToServer.writeObject(image);
             outToServer.flush();
-            System.out.println("Flushed: " + System.currentTimeMillis());
+            // System.out.println("Flushed: " + System.currentTimeMillis());
 
             outToServer.flush();
         }
@@ -394,7 +396,7 @@ public class Client
     void saveImage(String fileName , String extension, byte[] sizeArray, byte [] ba)
     {   
         
-        System.out.println("Reading: " + System.currentTimeMillis());
+        // System.out.println("Reading: " + System.currentTimeMillis());
         
         
         byte[] sizeAr = new byte[4];
@@ -417,5 +419,7 @@ public class Client
         }catch (IOException io){
             System.out.println("failed to write to " + fileName);
         }
+
+        System.out.println("Saving " + fileName+ "."+ extension + " to photos");
     }
 }
