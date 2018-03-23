@@ -28,7 +28,7 @@ public class Client
     private ObjectOutputStream outToServer;
     private ObjectInputStream  inFromServer;
     private String clientName;
-
+    private boolean privateChat = false;
     String userInput="";
     private Message toBeAccepted;
     
@@ -91,6 +91,7 @@ public class Client
                         Message outMessage = getMessage(userInput);
                         System.out.println("after get message");
 
+
                         if (outMessage == null){
                            outMessage = getMessage(userInput);
                         }
@@ -100,7 +101,7 @@ public class Client
                         else if (outMessage.getMessageType().equals("textOnly")){
                             send_message(outMessage);
                         }
-                        else if (outMessage.getMessageType().equals("imageOnly") && (outMessage.getUserTo()==null)){
+                        else if (outMessage.getMessageType().equals("imageOnly")){
                             send_image(outMessage);
 
                         }
@@ -213,7 +214,44 @@ public class Client
                         // return new Message(this.clientName,message[1],readImage(message[1]));
                         //new
                          
-                        return readImage(message[1]);
+                        return readImage(message[1], null);
+                        
+
+                    }
+                    catch(IOException e)
+                    {
+                        System.out.println("Failed to send image.");
+                        System.out.println(e);
+                        return null;
+                    }
+                    
+                }
+                else
+                {
+                    System.out.println("incorrect file format "+message[1]);
+                    return null;
+                }
+            }
+            else
+            {
+                System.out.println("incorrect file format "+message[1]);
+                return null;
+            }
+        }
+        else if(message[0].equals("-ui"))
+        {
+            if (message[1].length()>1)
+            {
+                if((message[2].substring(message[2].indexOf(".")+1,message[2].length())).equals("jpg")||(message[2].substring(message[2].indexOf(".")+1,message[2].length())).equals("jpeg")||(message[2].substring(message[2].indexOf(".")+1,message[2].length())).equals("png"))
+                {
+                    try
+                    {
+                        System.out.println("Picture");
+                        //old
+                        // return new Message(this.clientName,message[1],readImage(message[1]));
+                        //new
+                         
+                        return readImage(message[2], message[1]);
                         
 
                     }
@@ -258,13 +296,13 @@ public class Client
         else if(message[0].equals("-r"))
         {
             if (message[1].equals("yes")){
-                return (new Message(clientName, "yes",  true));
+                return (new Message(clientName, null, "yes",  true));
             }else if (message[1].equals("no")){
-                return (new Message(clientName, "no", false));
+                return (new Message(clientName, null, "no", false));
             }else{
 
                 System.out.println("not a valid response. Answer '-r yes' or '-r no' to respond");
-                return (new Message(clientName, "wrong input", false));
+                return (new Message(clientName, null, "wrong input", false));
                 
             }
         }
@@ -277,7 +315,7 @@ public class Client
     }
 
     
-    Message readImage(String ImageName) throws IOException
+    Message readImage(String ImageName, String userTo) throws IOException
     {   
         
         System.out.println(ImageName);
@@ -299,7 +337,15 @@ public class Client
 
             byte[] size = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
             System.out.println (size.length + " $$$$$$$$$$");
-            Message im = new Message(this.clientName,splitInfo[0] , splitInfo[1], size, byteArrayOutputStream.toByteArray());
+
+            Message im;
+            
+            if (userTo == null){
+                im = new Message(this.clientName,splitInfo[0] , splitInfo[1], size, byteArrayOutputStream.toByteArray());
+            }else{
+                im = new Message(this.clientName, userTo, splitInfo[0] , splitInfo[1], size, byteArrayOutputStream.toByteArray());
+            }
+            
 
             return im;
         }
@@ -307,16 +353,6 @@ public class Client
             System.out.println("incorrect file name specified: " + imgPath.getName());
             return null;
         }
-        
-
-        
-        
-
-        //converts byteArrayOutputStream.size into a byte array of size
-        
-        
-        
-      
     }
 
     void send_message(Message m)

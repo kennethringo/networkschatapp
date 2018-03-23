@@ -131,7 +131,7 @@ public class Server {
                                                 {   
                                                     user.pendingMsgs.push(messageFromClient); //push new image onto user's stack of pending images
 
-                                                    request_message(messageFromClient);
+                                                    request_message(messageFromClient, null);
                                                     
                                                     
                                                 }
@@ -167,7 +167,7 @@ public class Server {
                                                 }else{
                                                     Message resendRequest = (Message)user.pendingMsgs.peek(); //resend request until user answers -r yes/ -r no
                                                     
-                                                    request_message(resendRequest);
+                                                    request_message(resendRequest, null);
                                                     
                                                 }
                                             }
@@ -184,8 +184,9 @@ public class Server {
                                         {
                                             try
                                             {
-                                                user.getOutputStream().writeObject(new Message(messageFromClient));
+                                                // user.getOutputStream().writeObject(new Message(messageFromClient));
                                                 found = true;
+                                                break;
                                             }
                                             catch(Exception e)
                                             {
@@ -199,6 +200,83 @@ public class Server {
                                         Message m = new Message(messageFromClient.getUserTo() +" not found in chat", messageFromClient.getUserTo());
                                         m.setMessageType("serverResponse");
                                         outToClient.writeObject(m);
+                                    }
+
+                                    /////////////////////////////only text
+                                    if (messageFromClient.getMessageType().equals("textOnly")){
+                                        for(Connection user: connections)
+                                        {
+                                            if(messageFromClient.getUserTo().equals(user.getUserName()))
+                                            {
+                                                try
+                                                {
+                                                    user.getOutputStream().writeObject(new Message(messageFromClient));
+                                                }
+                                                catch(Exception e)
+                                                {
+                                                    System.out.println(e);
+                                                }
+                                                
+                                            }
+                                        }
+                                    }
+
+                                    /////////////////////////////only image
+                                    else if (messageFromClient.getMessageType().equals("imageOnly")){
+                                        System.out.println(" on server side send image" );
+                                        System.out.println(messageFromClient.getText());
+                                        System.out.println(messageFromClient.getSize().length + " size " );
+                                        String s = new String(messageFromClient.getByteArray());
+                                        
+                                        for(Connection user: connections)
+                                        {
+                                            if(messageFromClient.getUserTo().equals(user.getUserName()))
+                                            {
+                                                try
+                                                {   
+                                                    user.pendingMsgs.push(messageFromClient); //push new image onto user's stack of pending images
+
+                                                    request_message(messageFromClient, messageFromClient.getUserTo());
+                                                    
+                                                    
+                                                }
+                                                catch(Exception e)
+                                                {
+                                                    System.out.println(e);
+                                                }
+                                                
+                                            }
+                                        }
+                                        
+                                    }
+                                    else if (messageFromClient.getMessageType().equals("imageResponse")){
+                                        for(Connection user: connections)
+                                        {
+                                            if (messageFromClient.getUserFrom().equals(user.getUserName())){
+                                                // System.out.println("response from server to: " + messageFromClient.getUserFrom());
+                                                if (messageFromClient.getInformation().equals("yes")){
+                                                    // System.out.println("client says yes");
+                                                    
+                                                    Message toSend = user.pendingMsgs.pop(); //pop image off and send to user
+
+                                                    // System.out.println("toSend from: " + toSend.getUserFrom() +" to "+ toSend.getUserTo());
+                                                    // System.out.println("toSend name: " + toSend.getText());
+                                                    // System.out.println("toSend type: " + toSend.getMessageType());
+                                                    // System.out.println("toSend byteArray: " + toSend.getByteArray());
+                                                    user.getOutputStream().writeObject(toSend);
+                                                    System.out.println("wroteObject");
+                                                }
+                                                else if (messageFromClient.getInformation().equals("no")){
+                                                    user.pendingMsgs.peek();
+                                                    // break;
+                                                }else{
+                                                    Message resendRequest = (Message)user.pendingMsgs.peek(); //resend request until user answers -r yes/ -r no
+                                                    
+                                                    request_message(resendRequest, messageFromClient.getUserFrom());
+                                                    
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 
@@ -232,32 +310,78 @@ public class Server {
         
    
     }
-    void request_message(Message msgSend){ //broadcast
+    void request_message(Message msgSend, String userTo){ //broadcast
         // boolean whoToSendTo [] = new boolean[connections.size()];
-        
-        for (int i = 0 ; i < connections.size();i++){
-            if(!msgSend.getUserFrom().equals(connections.get(i).getUserName()))
-            {
-                try
-                {   
-                    System.out.println("from: " + msgSend.getUserFrom()+ " to: " + connections.get(i).getUserName());
-                    Message request = new Message(msgSend.getUserFrom(), msgSend.getUserFrom() + 
-                        " would like to send you an image. Would you like to accept? \n '-r yes' / '-r no' to respond.", false);
-                    System.out.println("this is request type: "+ request.getMessageType());
-                    connections.get(i).getOutputStream().writeObject(request);
-                }
-                catch(Exception e)
+        if (userTo == null){
+            for (int i = 0 ; i < connections.size();i++){
+                if(!msgSend.getUserFrom().equals(connections.get(i).getUserName()))
                 {
-                    System.out.println(e);
+                    try
+                    {   
+                        System.out.println("from: " + msgSend.getUserFrom()+ " to: " + connections.get(i).getUserName());
+                        Message request = new Message(msgSend.getUserFrom(),null ,msgSend.getUserFrom() + 
+                            " would like to send you an image. Would you like to accept? \n '-r yes' / '-r no' to respond.", false);
+                        System.out.println("this is request type: "+ request.getMessageType());
+                        connections.get(i).getOutputStream().writeObject(request);
+                    }
+                    catch(Exception e)
+                    {
+                        System.out.println(e);
+                    }
+                    
                 }
                 
+                
+            }  
+        }else{ //if specified user
+            for (int i = 0 ; i < connections.size();i++){
+                if (msgSend.getUserTo().equals(connections.get(i).getUserName())){
+                    try
+                    {   
+                        System.out.println("from: " + msgSend.getUserFrom()+ " to: " + connections.get(i).getUserName());
+                        Message request = new Message(msgSend.getUserFrom(),msgSend.getUserTo(),  msgSend.getUserFrom() + 
+                            " would like to send you an image. Would you like to accept? \n '-r yes' / '-r no' to respond.", false);
+                        System.out.println("this is request type: "+ request.getMessageType());
+                        connections.get(i).getOutputStream().writeObject(request);
+                    }
+                    catch(Exception e)
+                    {
+                        System.out.println(e);
+                    }
+                }
             }
-            
-            
         }
+        
         
        
     }
+
+    // void request_message_single(Message msgSend){ //broadcast
+    //     // boolean whoToSendTo [] = new boolean[connections.size()];
+        
+    //     for (int i = 0 ; i < connections.size();i++){
+    //         if(msgSend.getUserTo().equals(connections.get(i).getUserName()))
+    //         {
+    //             try
+    //             {   
+    //                 System.out.println("from: " + msgSend.getUserFrom()+ " to: " + connections.get(i).getUserName());
+    //                 Message request = new Message(msgSend.getUserFrom(), msgSend.getUserFrom() + 
+    //                     " would like to send you an image. Would you like to accept? \n '-r yes' / '-r no' to respond.", false);
+    //                 System.out.println("this is request type: "+ request.getMessageType());
+    //                 connections.get(i).getOutputStream().writeObject(request);
+    //             }
+    //             catch(Exception e)
+    //             {
+    //                 System.out.println(e);
+    //             }
+                
+    //         }
+            
+            
+    //     }
+        
+       
+    // }
     
     void send_message(Message m, String userTo)
     {

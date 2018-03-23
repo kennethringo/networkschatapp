@@ -36,11 +36,12 @@ public class Message implements Serializable{
      * @param time - the time when message was sent\nuserFrom - username of the user sending msg\nuserTo - username of user msg is directed to\nimage - byte array of image being sent
      * 
      */
-    // protected Message(String userFrom,String userTo, String fileName,byte[] image, byte[] size)
-    // {   
-    //     // if (image != null)
-    //     this.MessageType="imageOnly";this.userFrom=userFrom;this.text=fileName;this.userTo=userTo;this.image=image; this.size = size;
-    // }
+    protected Message(String userFrom,String userTo, String fileName, String extension, byte [] size, byte [] byteArray)
+    {   
+        // if (image != null)
+        this.MessageType="imageOnly";this.userFrom=userFrom;this.text=fileName;this.userTo=userTo;
+        this.extension = extension; this.size = size.clone(); this.ba = byteArray.clone();
+    }
 
     /**
      * This method creates a image-only message that is directed to all users.
@@ -56,10 +57,10 @@ public class Message implements Serializable{
         this.size = size.clone(); this.ba = byteArray.clone();
     }
     //////////////////////////////////////////////imageRequest
-    protected Message(String userFrom , String information, boolean accept)
+    protected Message(String userFrom ,String userTo,  String information, boolean accept)
     {   
         
-        this.MessageType="imageResponse";this.text = text; this.userFrom=userFrom; this.information = information; this.accept = accept;
+        this.MessageType="imageResponse";this.text = text; this.userFrom=userFrom; this.userTo=userTo; this.information = information; this.accept = accept;
     }
     //image Response
     // protected Message(String userFrom , boolean response)
