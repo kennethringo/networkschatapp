@@ -15,6 +15,9 @@ import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
+import java.nio.file.*;
+import java.nio.file.Paths;
 import java.io.IOException;
 
 public class Client 
@@ -86,13 +89,20 @@ public class Client
                     {
                         userInput=(new Scanner(System.in)).nextLine();
                         Message outMessage = getMessage(userInput);
-
                         System.out.println("after get message");
-                        if (outMessage.getMessageType().equals("textOnly")){
+
+                        if (outMessage == null){
+                           outMessage = getMessage(userInput);
+                        }
+
+                        
+
+                        else if (outMessage.getMessageType().equals("textOnly")){
                             send_message(outMessage);
                         }
                         else if (outMessage.getMessageType().equals("imageOnly") && (outMessage.getUserTo()==null)){
                             send_image(outMessage);
+
                         }
 
                         else if (outMessage.getMessageType().equals("imageResponse")){
@@ -132,7 +142,7 @@ public class Client
                                 System.out.println(inMessage.getText());
                                 System.out.println(inMessage.getSize().length);
                                 
-                                saveImage(inMessage.getText(), inMessage.getSize(), inMessage.getByteArray());
+                                saveImage(inMessage.getText(), inMessage.getExtension(),  inMessage.getSize(), inMessage.getByteArray());
                             }
 
                             else if(inMessage.getMessageType().equals("imageResponse"))
@@ -202,10 +212,12 @@ public class Client
                         //old
                         // return new Message(this.clientName,message[1],readImage(message[1]));
                         //new
+                         
                         return readImage(message[1]);
+                        
 
                     }
-                    catch(Exception e)
+                    catch(IOException e)
                     {
                         System.out.println("Failed to send image.");
                         System.out.println(e);
@@ -251,7 +263,7 @@ public class Client
                 return (new Message(clientName, "no", false));
             }else{
 
-                System.out.println("not a valid response. Answer 'yes' or 'no' to respond");
+                System.out.println("not a valid response. Answer '-r yes' or '-r no' to respond");
                 return (new Message(clientName, "wrong input", false));
                 
             }
@@ -271,17 +283,39 @@ public class Client
         System.out.println(ImageName);
         File imgPath = new File(ImageName);
         System.out.println(imgPath.getName() + "%%%%%");
-        BufferedImage image = ImageIO.read(imgPath);
 
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write(image, "jpg", byteArrayOutputStream);
+        if(imgPath.exists() && !imgPath.isDirectory()) { 
+            BufferedImage image = ImageIO.read(imgPath);
+
+            System.out.println("file name :'" + imgPath.getName() + "'");
+        
+            System.out.println("attempting to split file name");
+            String [] splitInfo = imgPath.getName().split("\\.");
+            System.out.println ("splitInfo[0]: " + splitInfo[0]);
+            System.out.println ("splitInfo[1]: " + splitInfo[1]);
+            
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ImageIO.write(image, splitInfo[1], byteArrayOutputStream);
+
+            byte[] size = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
+            System.out.println (size.length + " $$$$$$$$$$");
+            Message im = new Message(this.clientName,splitInfo[0] , splitInfo[1], size, byteArrayOutputStream.toByteArray());
+
+            return im;
+        }
+        else{
+            System.out.println("incorrect file name specified: " + imgPath.getName());
+            return null;
+        }
+        
+
+        
+        
 
         //converts byteArrayOutputStream.size into a byte array of size
-        byte[] size = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
-        System.out.println (size.length + " $$$$$$$$$$");
-        Message im = new Message(this.clientName,ImageName,size, byteArrayOutputStream.toByteArray());
         
-        return im;
+        
+        
       
     }
 
@@ -312,9 +346,6 @@ public class Client
             outToServer.flush();
             System.out.println("Flushed: " + System.currentTimeMillis());
 
-            Thread.sleep(120000);
-            System.out.println("Closing: " + System.currentTimeMillis());
-            
             outToServer.flush();
         }
         catch(Exception e)
@@ -324,16 +355,7 @@ public class Client
         }
     }
 
-
-    boolean acceptMessage(String userResponse){
-            if (userResponse.equals ("yes")){
-                return true;
-            }else{
-                return false;
-            }
-    }
-
-    void saveImage(String fileName,byte[] sizeArray, byte [] ba)
+    void saveImage(String fileName , String extension, byte[] sizeArray, byte [] ba)
     {   
         
         System.out.println("Reading: " + System.currentTimeMillis());
@@ -350,7 +372,12 @@ public class Client
         try{
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageAr));
             
-            ImageIO.write(image, "jpg", new File("w3.jpg"));
+            Path currentRelativePath = Paths.get("photos");
+            String s = currentRelativePath.toAbsolutePath().toString();
+            
+            File imageFile = new File(s, fileName + "."+ extension ); //s is parent directory, second part for name of file
+            ImageIO.write(image, extension, imageFile);
+            
         }catch (IOException io){
             System.out.println("failed to write to " + fileName);
         }

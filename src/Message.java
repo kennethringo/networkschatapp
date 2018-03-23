@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.io.ByteArrayOutputStream;
 public class Message implements Serializable{
     private String text = null;
+    private String extension;
     private String information = null;
     private boolean accept = false;
     private String userFrom = null;
@@ -35,11 +36,11 @@ public class Message implements Serializable{
      * @param time - the time when message was sent\nuserFrom - username of the user sending msg\nuserTo - username of user msg is directed to\nimage - byte array of image being sent
      * 
      */
-    protected Message(String userFrom,String userTo, String fileName,byte[] image, byte[] size)
-    {   
-        // if (image != null)
-        this.MessageType="imageOnly";this.userFrom=userFrom;this.text=fileName;this.userTo=userTo;this.image=image; this.size = size;
-    }
+    // protected Message(String userFrom,String userTo, String fileName,byte[] image, byte[] size)
+    // {   
+    //     // if (image != null)
+    //     this.MessageType="imageOnly";this.userFrom=userFrom;this.text=fileName;this.userTo=userTo;this.image=image; this.size = size;
+    // }
 
     /**
      * This method creates a image-only message that is directed to all users.
@@ -47,10 +48,11 @@ public class Message implements Serializable{
      * 
      */
     /////////////////////////////////////////////////////////////////////////////////////
-    protected Message(String userFrom, String fileName, byte [] size, byte [] byteArray)
+    protected Message(String userFrom, String fileName, String extension, byte [] size, byte [] byteArray)
     {   
         
         this.MessageType="imageOnly";this.userFrom=userFrom;this.text=fileName;this.userTo=null;this.image=image; 
+        this.extension = extension;
         this.size = size.clone(); this.ba = byteArray.clone();
     }
     //////////////////////////////////////////////imageRequest
@@ -94,6 +96,10 @@ public class Message implements Serializable{
 	   return text;
     }
 
+    protected String getExtension()
+    {
+       return extension;
+    }
     protected String getMessageType()
     {
     	return MessageType;

@@ -163,6 +163,7 @@ public class Server {
                                                 }
                                                 else if (messageFromClient.getInformation().equals("no")){
                                                     user.pendingMsgs.peek();
+                                                    // break;
                                                 }else{
                                                     Message resendRequest = (Message)user.pendingMsgs.peek(); //resend request until user answers -r yes/ -r no
                                                     
